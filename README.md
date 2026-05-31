@@ -50,6 +50,7 @@ Data sourced from [OpenNeuro ds006142](https://openneuro.org/datasets/ds006142/v
 
 ```
 ├── FinalProject_Code.ipynb   # Full analysis pipeline
+├── EEG_NP_Dec2025.pdf        # Full written report
 └── README.md
 ```
 
