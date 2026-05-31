@@ -6,7 +6,7 @@
 
 ## Overview
 
-Can a machine learning model predict whether a person will recognize a movie clip — and how quickly — based on their brain activity alone?
+Can a machine learning model predict whether a person will recognize a movie clip (and how quickly) based on their electrical brain activity?
 
 This project uses EEG (electroencephalography) data from 27 adult participants to classify three memory recognition states:
 
@@ -18,26 +18,25 @@ A Random Forest classifier was trained on EEG-derived features including bandpow
 
 ---
 
-## Key Findings
+## Key Findings:
 
 - All four EEG frequency bands (alpha, beta, theta, delta) showed statistically significant differences across the three memory states (Kruskal-Wallis, p < 0.05)
-- LOSO accuracy of 71% is well above the 33% chance baseline for a 3-class problem
-- The classifier was heavily biased toward the majority class (NotRecognised) due to class imbalance — an honest limitation discussed in the paper
-- Functional connectivity patterns (Pearson correlation across 64 channels) provided a rich but high-dimensional feature space, requiring PCA to reduce to 50 components retaining 95% of variance
+- LOSO accuracy of 71% is well above the 33% chance baseline, and found to be significant by Welch's t-test (p=1.29e-13)
+- The classifier was heavily biased toward the majority class (NotRecognised) due to class imbalance, which is a key limitation of this project as-is
+- Functional connectivity patterns (Pearson correlation across 64 channels) provided a high-dimensional feature space, requiring PCA to reduce to 50 components while retaining 95% of variance
 
 ---
 
 ## Methods
 
-| Step | Tool/Method |
-|---|---|
-| Data loading | MNE-BIDS |
-| EEG preprocessing | Baseline correction, high-pass filter (1 Hz Butterworth), average reference |
-| Feature extraction | Bandpower via Welch PSD; functional connectivity via Pearson correlation |
-| Dimensionality reduction | PCA (50 components, 95% variance retained) |
-| Classification | Random Forest (200 estimators, balanced class weights) |
-| Validation | Leave-One-Subject-Out (LOSO) cross-validation |
-| Statistics | Shapiro-Wilk, Levene's, Kruskal-Wallis |
+1. EEG data were loaded using a MNE-BIDS pipeline with a helper script provided by Matran-Fernandez & Halder.
+2. Preprocessing included applying a BioSemi 64-channel montage, average referencing, baseline correction, and a 1 Hz high-pass Butterworth filter. Data were epoched from 0 to 1.0 seconds following each event onset and downsampled x32.
+3. Bandpower features (alpha, beta, theta, delta) were extracted for each epoch using Welch's power spectral density method.
+4. Functional connectivity was computed as pairwise Pearson correlation across all 64 EEG channels, yielding 2,016 unique connectivity features per epoch. Demographic variables (age, sex, handedness) were merged from participant metadata.
+5. PCA was applied after standard scaling, retaining 50 principal components that accounted for 95% of the total variance.
+6. A Random Forest classifier (200 estimators and balanced class weights) was trained to predict one of three recognition labels per epoch.
+7. Model performance is evaluated using Leave-One-Subject-Out (LOSO) cross-validation, where the model is trained on 26 subjects and tested on the held-out subject, repeated for all 27 subjects.
+8. Normality and homogeneity of variance were assessed with Shapiro-Wilk and Levene's tests. Group differences in bandpower across recognition states were tested with Kruskal-Wallis. Classifier accuracy above chance was confirmed with Welch's t-test (p = 1.29e-13).
 
 ---
 
@@ -74,7 +73,7 @@ pip install mne mne-bids numpy pandas scipy scikit-learn matplotlib seaborn
 
 - Strong class imbalance (NotRecognised >> other classes) limits minority-class recall
 - Small sample size (n=27) constrains generalizability
-- Pearson correlation captures only linear connectivity; frequency-specific metrics (e.g., phase-locking value) may capture richer signal
+- Pearson correlation captures only linear connectivity; frequency-specific metrics could possibly capture richer signal
 - PCA compresses variance but does not guarantee preservation of task-relevant features
 
 ---
@@ -86,6 +85,12 @@ pip install mne mne-bids numpy pandas scipy scikit-learn matplotlib seaborn
 - Continuous regression model to predict the precise timing of recognition
 - Frequency-specific connectivity metrics (coherence, phase-locking value)
 - ICA-based artifact rejection for cleaner signal
+
+---
+
+## Acknowledgements
+
+The author thanks Dr. Rosie Dutt and Jonathan Leung for advice on experimental design, relevant pipelines & packages, and statistical analysis. Helper script courtesy of Matran-Fernandez & Halder (2025).
 
 ---
 
